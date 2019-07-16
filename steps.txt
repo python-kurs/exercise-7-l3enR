@@ -1,0 +1,49 @@
+1. Einlesen der Daten
+1.1 Area Definition für Kongo machen
+2. für jeden Monat Daten verarbeiten und Abfrage der Wolkeneigenschaften durch eine Maske
+3. Vergleich der Werte
+4. Beantworten der Fragestellung
+
+
+time step = 2 Monate
+für jeden Time step eine Maske -> Wolke oder nicht
+-> keine Unterscheidung der verschiedenen Wolkenarten notwendig
+-> welche Kanäle oder Kanaldifferenzen sind nutzbar um Wolken zu identifizieren
+-> welcher Schwellenwert muss angewendet werden? Recherchieren oder ausprobieren
+anschließend frequency aus aggregierten Daten berechnen
+
+
+N 95138.35 (Äquator)
+N 8478812.151 (SHK) -> -8.383.674? -> -83E5 
+N 669890.787 (NHK) -> 574.752? -> 5E5
+
+E 829081.536 (0-Meridian)
+E 788141.061 (West) -> 40.940? -> 0E5
+E 353711.150 (Ost) -> 475.370 -> 4E5? 
+
+
+
+#--------------------------
+scn = scenes_mon1[1]
+scn.load(["natural_color"])
+local_scn = scn.resample(area_def)
+
+import matplotlib.pyplot as plt
+import cartopy.feature as cfeature
+
+image = np.asarray(local_scn["natural_color"]).transpose(1,2,0)
+image = np.interp(image, (np.percentile(image,1), np.percentile(image,99)), (0, 1))
+crs = local_scn["natural_color"].attrs["area"].to_cartopy_crs()
+fig = plt.subplots(figsize=(10,10))
+ax = plt.axes(projection=crs)
+ax.coastlines(resolution="10m", color="white")
+ax.gridlines(xlocs=range(10,45,5),ylocs=range(25,55,5))
+states_provinces = cfeature.NaturalEarthFeature(
+        category="cultural",
+        name="admin_0_boundary_lines_land",
+        scale="10m",
+        facecolor="none")
+ax.add_feature(states_provinces, edgecolor="white")
+ax.imshow(image, transform=crs, extent=crs.bounds, origin="upper")
+plt.show()
+#--------------------------
